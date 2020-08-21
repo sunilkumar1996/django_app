@@ -1,6 +1,6 @@
 from django.shortcuts import render, HttpResponseRedirect
 # from django.contrib.auth.forms import UserCreationForm
-from .forms import SignUpForm
+from .forms import SignUpForm, EditUserProfileForm, EditAdminProfileForm
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, SetPasswordForm
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -43,7 +43,19 @@ def user_login(request):
 # Profile view function here
 def user_profile(request):
     if request.user.is_authenticated:
-        return render(request, 'enroll/profile.html', {'name': request.user})
+        if request.method == 'POST':
+            form = EditUserProfileForm(
+                request.POST, instance=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Profile Updated !!!')
+                return HttpResponseRedirect('/profile/')
+        else:
+            if request.user.is_superuser == True:
+                form = EditAdminProfileForm(instance=request.user)
+            else:
+                form = EditUserProfileForm(instance=request.user)
+        return render(request, 'enroll/profile.html', {'name': request.user, 'form': form})
     else:
         return HttpResponseRedirect('/login/')
 
