@@ -2,8 +2,8 @@ from django.shortcuts import render, HttpResponseRedirect
 # from django.contrib.auth.forms import UserCreationForm
 from .forms import SignUpForm
 from django.contrib import messages
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 
 
 # Signup view Function
@@ -52,3 +52,20 @@ def user_profile(request):
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect('/login/')
+
+
+# Change Password view Function
+def user_change_pass(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            form = PasswordChangeForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                form.save()
+                update_session_auth_hash(request, form.user)
+                messages.success(request, 'Change Password Successfully !!')
+                return HttpResponseRedirect('/profile/')
+        else:
+            form = PasswordChangeForm(user=request.user)
+        return render(request, 'enroll/changepass.html', {'form': form})
+    else:
+        return HttpResponseRedirect('/login/')
