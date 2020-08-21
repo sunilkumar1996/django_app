@@ -2,7 +2,7 @@ from django.shortcuts import render, HttpResponseRedirect
 # from django.contrib.auth.forms import UserCreationForm
 from .forms import SignUpForm
 from django.contrib import messages
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, SetPasswordForm
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 
 
@@ -54,7 +54,7 @@ def user_logout(request):
     return HttpResponseRedirect('/login/')
 
 
-# Change Password view Function
+# Change Password with old password
 def user_change_pass(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
@@ -62,10 +62,27 @@ def user_change_pass(request):
             if form.is_valid():
                 form.save()
                 update_session_auth_hash(request, form.user)
-                messages.success(request, 'Change Password Successfully !!')
+                messages.success(request, 'Password Changed Successfully !!')
                 return HttpResponseRedirect('/profile/')
         else:
             form = PasswordChangeForm(user=request.user)
         return render(request, 'enroll/changepass.html', {'form': form})
+    else:
+        return HttpResponseRedirect('/login/')
+
+
+# Change Password without old password
+def user_change_password(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            form = SetPasswordForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                form.save()
+                update_session_auth_hash(request, form.user)
+                messages.success(request, 'Password changed Successfully !!!')
+                return HttpResponseRedirect('/profile/')
+        else:
+            form = SetPasswordForm(user=request.user)
+            return render(request, 'enroll/changepass1.html', {'form': form})
     else:
         return HttpResponseRedirect('/login/')
